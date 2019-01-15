@@ -1,8 +1,14 @@
 import React, { Component } from "react";
 import { Authenticator, AmplifyTheme } from "aws-amplify-react";
-import Dashboard from "./Dashboard";
+import Dashboard from "./pages/Dashboard";
+import ProfilePage from "./pages/ProfilePage";
+import MarketPage from "./pages/MarketPage";
 import { Auth, Hub } from "aws-amplify";
 import { BrowserRouter as Router, Route } from "react-router-dom";
+import NavBar from "./Navbar";
+import "../static/css/App.css";
+
+export const UserContext = React.createContext();
 
 export class App extends Component {
   state = { user: null };
@@ -17,7 +23,6 @@ export class App extends Component {
     try {
       const user = await Auth.currentAuthenticatedUser();
       user ? this.setState({ user }) : this.setState({ user: null });
-      console.log(user);
     } catch (err) {
       console.log(err);
     }
@@ -42,19 +47,39 @@ export class App extends Component {
     }
   };
 
+  handleSignOut = async () => {
+    try {
+      await Auth.signOut();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   renderHelper = () => {
     const { user } = this.state;
     return !user ? (
       <Authenticator theme={theme} />
     ) : (
-      <Router>
-        <>
-          {/* Routes */}
-          <div className="app-container">
-            <Route exact path="/" component={HomePage} />
-          </div>
-        </>
-      </Router>
+      <UserContext.Provider value={{ user }}>
+        <Router>
+          <>
+            {/* Navbar */}
+            <NavBar user={user} handleSignOut={this.handleSignOut} />
+            {/* Routes */}
+            <div className="app-container">
+              <Route exact path="/" component={Dashboard} />
+              <Route exact path="/profile" component={ProfilePage} />
+              <Route
+                exact
+                path="/market/:marketId"
+                component={({ match }) => (
+                  <MarketPage marketId={match.params.marketId} />
+                )}
+              />
+            </div>
+          </>
+        </Router>
+      </UserContext.Provider>
     );
   };
 

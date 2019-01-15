@@ -1,11 +1,14 @@
 import React, { Component } from "react";
+import NewMarket from "../NewMarket";
+import MarkeList from "../MarketList";
 
 export class Dashboard extends Component {
   render() {
     return (
-      <div>
-        <h1>Dashboard</h1>
-      </div>
+      <>
+        <NewMarket />
+        <MarkeList />
+      </>
     );
   }
 }
