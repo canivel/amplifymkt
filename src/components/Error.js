@@ -1,13 +1,13 @@
-import React, { Component } from "react";
+import React from "react";
 
-export class Error extends Component {
-  render() {
-    return (
-      <div>
-        <h1>Error</h1>
-      </div>
-    );
-  }
-}
+const Error = ({ errors }) => {
+  return (
+    <pre className="error">
+      {errors.map(({ message }, i) => (
+        <div key={i}>{message}</div>
+      ))}
+    </pre>
+  );
+};
 
 export default Error;

@@ -34,7 +34,7 @@ export class NewMarket extends Component {
       );
       console.log(result);
       console.log(`Create market: id ${result.data.createMarket.id}`);
-      this.setState({ name: "" });
+      this.setState({ name: "", selectedTags: [] });
     } catch (err) {
       console.error("Error adding new market", err);
       Notification.error({
