@@ -3,7 +3,7 @@ import { Connect } from "aws-amplify-react";
 import { listMarkets } from "../graphql/queries";
 import { onCreateMarket } from "../graphql/subscriptions";
 import { graphqlOperation } from "aws-amplify";
-import { Loading, Card, Tag } from "element-react";
+import { Loading, Card, Tag, Icon } from "element-react";
 import Error from "./Error";
 import { Link } from "react-router-dom";
 
@@ -19,6 +19,7 @@ export class MarketList extends Component {
   };
 
   render() {
+    const { searchResults, searchTerm } = this.props;
     return (
       <Connect
         query={graphqlOperation(listMarkets)}
@@ -29,10 +30,21 @@ export class MarketList extends Component {
           if (errors.length > 0) return <Error errors={errors} />;
           if (loading || !data.listMarkets)
             return <Loading fullscreen={true} />;
+
+          const markets =
+            searchResults.length > 0 ? searchResults : data.listMarkets.items;
+
           return (
             <>
-              <h2 className="header">Markets</h2>
-              {data.listMarkets.items.map(market => (
+              {searchResults.length > 0 ? (
+                <h2 className="text-green">
+                  <Icon type="success" name="check" className="icon" />
+                  {searchResults.length} Results for {searchTerm}
+                </h2>
+              ) : (
+                <h2 className="header">Markets</h2>
+              )}
+              {markets.map(market => (
                 <div className="my-2" key={market.id}>
                   <Card
                     bodyStyle={{
