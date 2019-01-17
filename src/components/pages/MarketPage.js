@@ -68,7 +68,7 @@ export class MarketPage extends Component {
               }
               name="1"
             >
-              <NewProduct />
+              <NewProduct marketId={this.props.marketId} />
             </Tabs.Pane>
           )}
           <Tabs.Pane
