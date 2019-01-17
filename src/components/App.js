@@ -51,7 +51,7 @@ export class App extends Component {
     try {
       await Auth.signOut();
     } catch (err) {
-      console.log(err);
+      console.err("signout error", err);
     }
   };
 

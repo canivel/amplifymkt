@@ -96,11 +96,11 @@ export class MarketPage extends Component {
     });
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     this.createProductListener.unsubscribe();
     this.updateProductListener.unsubscribe();
     this.deleteProductListener.unsubscribe();
-  }
+  };
 
   handleGetMarket = async () => {
     const input = {
