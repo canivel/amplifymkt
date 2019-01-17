@@ -1,10 +1,34 @@
 import React, { Component } from "react";
 import { API, graphqlOperation } from "aws-amplify";
-import { getMarket } from "../../graphql/queries";
 import { Loading, Tabs, Icon } from "element-react";
 import { Link } from "react-router-dom";
 import NewProduct from "../NewProduct";
 import Product from "../Product";
+
+export const getMarket = `query GetMarket($id: ID!) {
+  getMarket(id: $id) {
+    id
+    name
+    products {
+      items {
+        id
+        description
+        price
+        shipped
+        owner
+        file {
+          key
+        }
+        createdAt
+      }
+      nextToken
+    }
+    tags
+    owner
+    createdAt
+  }
+}
+`;
 export class MarketPage extends Component {
   state = {
     market: null,
@@ -82,7 +106,7 @@ export class MarketPage extends Component {
           >
             <div className="product-list">
               {market.products.items.map(product => (
-                <Product product={product} />
+                <Product product={product} key={product.id} />
               ))}
             </div>
           </Tabs.Pane>

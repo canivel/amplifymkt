@@ -34,6 +34,7 @@ export class NewProduct extends Component {
       const filename = `/${visibility}/${identityId}/${Date.now()}-${
         this.state.image.name
       }`;
+      console.log(filename);
       const uploadedFile = await Storage.put(filename, this.state.image.file, {
         contentType: this.state.image.type,
         progressCallback: progress => {
