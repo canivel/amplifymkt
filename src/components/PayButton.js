@@ -9,10 +9,16 @@ const stripeConfing = {
 };
 export class PayButton extends Component {
   handleCharge = async token => {
+    const { product } = this.props;
     try {
       const body = {
         body: {
-          token
+          token,
+          charge: {
+            currency: stripeConfing.currency,
+            amount: product.price,
+            description: product.description
+          }
         }
       };
       const result = await API.post("orderlambda", "/charge", body);
