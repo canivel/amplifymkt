@@ -20,9 +20,9 @@ export class PayButton extends Component {
   };
 
   handleCharge = async token => {
-    const { product } = this.props;
+    const { product, user } = this.props;
     try {
-      const ownerEmail = await getOwnerEmail(product.owner);
+      const ownerEmail = await this.getOwnerEmail(product.owner);
       console.log({ ownerEmail });
       const body = {
         body: {
