@@ -4,11 +4,14 @@ import Dashboard from "./pages/Dashboard";
 import ProfilePage from "./pages/ProfilePage";
 import MarketPage from "./pages/MarketPage";
 import { Auth, Hub, API, graphqlOperation } from "aws-amplify";
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { Router, Route } from "react-router-dom";
+import createBrowserHistory from "history/createBrowserHistory";
 import NavBar from "./Navbar";
 import "../static/css/App.css";
 import { getUser } from "../graphql/queries";
 import { registerUser } from "../graphql/mutations";
+
+export const history = createBrowserHistory();
 
 export const UserContext = React.createContext();
 
@@ -92,14 +95,18 @@ export class App extends Component {
       <Authenticator theme={theme} />
     ) : (
       <UserContext.Provider value={{ user }}>
-        <Router>
+        <Router history={history}>
           <>
             {/* Navbar */}
             <NavBar user={user} handleSignOut={this.handleSignOut} />
             {/* Routes */}
             <div className="app-container">
               <Route exact path="/" component={Dashboard} />
-              <Route exact path="/profile" component={ProfilePage} />
+              <Route
+                exact
+                path="/profile"
+                component={() => <ProfilePage user={user} />}
+              />
               <Route
                 exact
                 path="/markets/:marketId"
