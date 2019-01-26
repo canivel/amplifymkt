@@ -16,7 +16,7 @@ export const history = createBrowserHistory();
 export const UserContext = React.createContext();
 
 export class App extends Component {
-  state = { user: null };
+  state = { user: null, userAttributes: null };
 
   async componentDidMount() {
     //Auth.signOut().then(c => console.log(c));
@@ -27,10 +27,18 @@ export class App extends Component {
   getUserData = async () => {
     try {
       const user = await Auth.currentAuthenticatedUser();
-      user ? this.setState({ user }) : this.setState({ user: null });
+      user
+        ? this.setState({ user }, () => this.getuserAttributes(this.state.user))
+        : this.setState({ user: null });
     } catch (err) {
       console.log(err);
     }
+  };
+
+  getuserAttributes = async authUserData => {
+    const attributesArr = await Auth.userAttributes(authUserData);
+    const attributesObj = await Auth.attributesToObject(attributesArr);
+    this.setState({ userAttributes: attributesObj });
   };
 
   onHubCapsule = capsule => {
@@ -89,12 +97,12 @@ export class App extends Component {
     }
   };
 
-  renderHelper = () => {
-    const { user } = this.state;
+  render() {
+    const { user, userAttributes } = this.state;
     return !user ? (
       <Authenticator theme={theme} />
     ) : (
-      <UserContext.Provider value={{ user }}>
+      <UserContext.Provider value={{ user, userAttributes }}>
         <Router history={history}>
           <>
             {/* Navbar */}
@@ -105,13 +113,19 @@ export class App extends Component {
               <Route
                 exact
                 path="/profile"
-                component={() => <ProfilePage user={user} />}
+                component={() => (
+                  <ProfilePage user={user} userAttributes={userAttributes} />
+                )}
               />
               <Route
                 exact
                 path="/markets/:marketId"
                 component={({ match }) => (
-                  <MarketPage marketId={match.params.marketId} user={user} />
+                  <MarketPage
+                    marketId={match.params.marketId}
+                    user={user}
+                    userAttributes={userAttributes}
+                  />
                 )}
               />
             </div>
@@ -119,10 +133,6 @@ export class App extends Component {
         </Router>
       </UserContext.Provider>
     );
-  };
-
-  render() {
-    return <div>{this.renderHelper()}</div>;
   }
 }
 

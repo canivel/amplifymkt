@@ -14,7 +14,7 @@ export const getMarket = `query GetMarket($id: ID!) {
   getMarket(id: $id) {
     id
     name
-    products {
+    products(sortDirection: DESC, limit: 999) {
       items {
         id
         description

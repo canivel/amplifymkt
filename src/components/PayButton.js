@@ -30,7 +30,7 @@ export class PayButton extends Component {
   });
 
   handleCharge = async token => {
-    const { product, user } = this.props;
+    const { product, userAttributes } = this.props;
     try {
       const ownerEmail = await this.getOwnerEmail(product.owner);
       console.log({ ownerEmail });
@@ -43,7 +43,7 @@ export class PayButton extends Component {
             description: product.description
           },
           email: {
-            customerEmail: user.attributes.email,
+            customerEmail: userAttributes.email,
             ownerEmail,
             shipped: product.shipped
           }
@@ -58,7 +58,7 @@ export class PayButton extends Component {
         }
 
         const input = {
-          orderUserId: user.attributes.sub,
+          orderUserId: userAttributes.sub,
           orderProductId: product.id,
           shippingAddress
         };
@@ -94,11 +94,11 @@ export class PayButton extends Component {
   };
 
   render() {
-    const { product, user } = this.props;
+    const { product, userAttributes } = this.props;
     return (
       <StripeCheckout
         token={this.handleCharge}
-        email={user.attributes.email}
+        email={userAttributes.email}
         name={product.description}
         amount={product.price}
         shippingAddress={product.shipped}

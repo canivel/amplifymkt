@@ -164,8 +164,9 @@ export class Product extends Component {
     const { deleteProductDialog } = this.state;
     return (
       <UserContext.Consumer>
-        {({ user }) => {
-          const isProductOwner = user && user.attributes.sub === product.owner;
+        {({ userAttributes }) => {
+          const isProductOwner =
+            userAttributes && userAttributes.sub === product.owner;
 
           return (
             <div className="card-container">
@@ -191,7 +192,10 @@ export class Product extends Component {
                       ${convertCentsToDollar(product.price)}
                     </span>
                     {!isProductOwner && (
-                      <PayButton product={product} user={user} />
+                      <PayButton
+                        product={product}
+                        userAttributes={userAttributes}
+                      />
                     )}
                   </div>
                 </div>
