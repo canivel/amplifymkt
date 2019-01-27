@@ -1,7 +1,20 @@
 import React, { Component } from "react";
-import { API, graphqlOperation } from "aws-amplify";
-import { Tabs, Icon, Card, Table, Button, Tag } from "element-react";
-import { convertCentsToDollar } from "../../utils";
+import { API, graphqlOperation, Auth } from "aws-amplify";
+import {
+  Tabs,
+  Icon,
+  Card,
+  Table,
+  Button,
+  Tag,
+  Dialog,
+  Form,
+  Input,
+  Message,
+  Notification,
+  MessageBox
+} from "element-react";
+import { convertCentsToDollar, formatOrderDate } from "../../utils";
 
 const getUser = `query GetUser($id: ID!) {
   getUser(id: $id) {
@@ -36,6 +49,10 @@ const getUser = `query GetUser($id: ID!) {
 
 export class ProfilePage extends Component {
   state = {
+    email: this.props.userAttributes && this.props.userAttributes.email,
+    emailDialog: false,
+    verificationForm: false,
+    verificationCode: "",
     orders: [],
     columns: [
       { prop: "name", width: "150" },
@@ -60,13 +77,21 @@ export class ProfilePage extends Component {
           switch (row.name) {
             case "Email":
               return (
-                <Button type="info" size="small">
+                <Button
+                  type="info"
+                  size="small"
+                  onClick={() => this.setState({ emailDialog: true })}
+                >
                   Edit
                 </Button>
               );
             case "Delete Profile":
               return (
-                <Button type="danger" size="small">
+                <Button
+                  onClick={this.handleDeleteProfile}
+                  type="danger"
+                  size="small"
+                >
                   Delete
                 </Button>
               );
@@ -90,8 +115,92 @@ export class ProfilePage extends Component {
     this.setState({ orders: result.data.getUser.order.items });
   };
 
+  handleUpdateEmail = async () => {
+    const updateAttributes = {
+      email: this.state.email
+    };
+    try {
+      const result = await Auth.updateUserAttributes(
+        this.props.user,
+        updateAttributes
+      );
+      if (result === "SUCCESS") {
+        this.sendVerificationCode("email");
+      }
+    } catch (err) {
+      console.error(err);
+      Notification.error({
+        title: "Error",
+        message: `${err.message || "Error updating email"}`
+      });
+    }
+  };
+
+  sendVerificationCode = async attr => {
+    const result = await Auth.verifyCurrentUserAttribute(attr);
+    this.setState({ verificationForm: true });
+    Message({
+      type: "info",
+      customClass: "message",
+      message: `Verification code sent to ${this.state.email}`
+    });
+  };
+
+  handleVerifiedEmail = async attr => {
+    try {
+      const result = await Auth.verifyCurrentUserAttributeSubmit(
+        attr,
+        this.state.verificationCode
+      );
+      Notification({
+        title: "Success",
+        message: "Email successfully verified",
+        type: `${result.toLowerCase()}`
+      });
+      this.setState({ emailDialog: false });
+    } catch (err) {
+      console.error(err);
+      Notification.error({
+        title: "Error",
+        message: `${err.message || "Error updating email"}`
+      });
+    }
+  };
+
+  handleDeleteProfile = () => {
+    MessageBox.confirm(
+      "This will delete your account, continue?",
+      "Attention!",
+      {
+        confirmButtonText: "Delete",
+        cancelButtonText: "Cancel",
+        type: "warning"
+      }
+    )
+      .then(async () => {
+        try {
+          await this.props.user.deleteUser();
+        } catch (err) {
+          console.error(err);
+        }
+      })
+      .catch(() => {
+        Message({
+          type: "info",
+          message: "Delete was cancel"
+        });
+      });
+  };
+
   render() {
-    const { orders, columns } = this.state;
+    const {
+      orders,
+      columns,
+      email,
+      emailDialog,
+      verificationCode,
+      verificationForm
+    } = this.state;
     const { user, userAttributes } = this.props;
     return (
       userAttributes && (
@@ -139,7 +248,7 @@ export class ProfilePage extends Component {
                       <p>Order Id: {order.id}</p>
                       <p>Product Description: {order.product.description}</p>
                       <p>Price: ${convertCentsToDollar(order.product.price)}</p>
-                      <p>Purchased on {order.createdAt}</p>
+                      <p>Purchased on {formatOrderDate(order.createdAt)}</p>
                       {order.shippingAddress && (
                         <>
                           Shipping Address
@@ -158,6 +267,54 @@ export class ProfilePage extends Component {
               ))}
             </Tabs.Pane>
           </Tabs>
+
+          {/* Email dialog */}
+          <Dialog
+            size="large"
+            customClass="dialog"
+            title="Edit Email"
+            visible={emailDialog}
+            onCancel={() => this.setState({ emailDialog: false })}
+          >
+            <Dialog.Body>
+              <Form labelPosition="top">
+                <Form.Item label="Email">
+                  <Input
+                    value={email}
+                    onChange={email => this.setState({ email })}
+                  />
+                </Form.Item>
+                {verificationForm && (
+                  <Form.Item label="Enter Verification Code" labelWidth="120">
+                    <Input
+                      onChange={verificationCode =>
+                        this.setState({ verificationCode })
+                      }
+                      value={verificationCode}
+                    />
+                  </Form.Item>
+                )}
+              </Form>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Button onClick={() => this.setState({ emailDialog: false })}>
+                Cancel
+              </Button>
+              {!verificationForm && (
+                <Button type="primary" onClick={this.handleUpdateEmail}>
+                  Save
+                </Button>
+              )}
+              {verificationForm && (
+                <Button
+                  type="primary"
+                  onClick={() => this.handleVerifiedEmail("email")}
+                >
+                  Submit
+                </Button>
+              )}
+            </Dialog.Footer>
+          </Dialog>
         </>
       )
     );

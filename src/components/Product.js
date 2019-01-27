@@ -15,6 +15,7 @@ import { convertCentsToDollar, convertDollarsToCents } from "../utils";
 import PayButton from "./PayButton";
 import { API, graphqlOperation } from "aws-amplify";
 import { updateProduct, deleteProduct } from "../graphql/mutations";
+import { Link } from "react-router-dom";
 export class Product extends Component {
   state = {
     updateProductDialog: false,
@@ -167,7 +168,8 @@ export class Product extends Component {
         {({ userAttributes }) => {
           const isProductOwner =
             userAttributes && userAttributes.sub === product.owner;
-
+          const isEmailVerified =
+            userAttributes && userAttributes.email_verified;
           return (
             <div className="card-container">
               <Card bodyStyle={{ padding: 0, minWidth: "200px" }}>
@@ -191,11 +193,17 @@ export class Product extends Component {
                     <span className="mx-1">
                       ${convertCentsToDollar(product.price)}
                     </span>
-                    {!isProductOwner && (
-                      <PayButton
-                        product={product}
-                        userAttributes={userAttributes}
-                      />
+                    {isEmailVerified ? (
+                      !isProductOwner && (
+                        <PayButton
+                          product={product}
+                          userAttributes={userAttributes}
+                        />
+                      )
+                    ) : (
+                      <Link to="/profile" className="Link">
+                        Verify Email First
+                      </Link>
                     )}
                   </div>
                 </div>

@@ -9,6 +9,7 @@ import { Loading, Tabs, Icon } from "element-react";
 import { Link } from "react-router-dom";
 import NewProduct from "../NewProduct";
 import Product from "../Product";
+import { formatProductDate } from "../../utils";
 
 export const getMarket = `query GetMarket($id: ID!) {
   getMarket(id: $id) {
@@ -38,7 +39,8 @@ export class MarketPage extends Component {
   state = {
     market: null,
     isLoading: true,
-    isMarketOwner: false
+    isMarketOwner: false,
+    isEmailVerified: false
   };
 
   componentDidMount() {
@@ -109,7 +111,15 @@ export class MarketPage extends Component {
     const result = await API.graphql(graphqlOperation(getMarket, input));
     this.setState({ market: result.data.getMarket, isLoading: false }, () => {
       this.checkMarketOwner();
+      this.checkEmailVerified();
     });
+  };
+
+  checkEmailVerified = async () => {
+    const { userAttributes } = this.props;
+    if (userAttributes) {
+      this.setState({ isEmailVerified: userAttributes.email_verified });
+    }
   };
 
   checkMarketOwner = () => {
@@ -122,7 +132,7 @@ export class MarketPage extends Component {
   };
 
   renderMarket = () => {
-    const { market, isLoading, isMarketOwner } = this.state;
+    const { market, isLoading, isMarketOwner, isEmailVerified } = this.state;
     return isLoading ? (
       <Loading fullscreen={true} />
     ) : (
@@ -138,7 +148,7 @@ export class MarketPage extends Component {
         <div className="items-center pt-2">
           <span style={{ color: "var(--lightSquidInk)", paddingBottom: "1em" }}>
             <Icon name="date" className="icon" />
-            {market.createdAt}
+            {formatProductDate(market.createdAt)}
           </span>
         </div>
 
@@ -154,7 +164,11 @@ export class MarketPage extends Component {
               }
               name="1"
             >
-              <NewProduct marketId={this.props.marketId} />
+              {isEmailVerified ? (
+                <NewProduct marketId={this.props.marketId} />
+              ) : (
+                <Link to="/profile">Verify your email before add products</Link>
+              )}
             </Tabs.Pane>
           )}
           <Tabs.Pane
